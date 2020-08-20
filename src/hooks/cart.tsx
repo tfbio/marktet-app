@@ -65,9 +65,15 @@ const CartProvider: React.FC = ({ children }) => {
 
   const increment = useCallback(
     async id => {
-      products.map(p =>
-        p.id === id ? { ...products, quantity: p.quantity + 1 } : p,
-      );
+      const product = products.find(id);
+      if (!product) {
+        throw new Error('error.');
+      }
+
+      const productInc = { ...product, quantity: product.quantity + 1 };
+      products.map(p => (p.id === id ? productInc : p));
+
+      AsyncStorage.setItem('@market:products', JSON.stringify(productInc));
     },
     [products],
   );
@@ -76,16 +82,17 @@ const CartProvider: React.FC = ({ children }) => {
     async id => {
       const product = products.find(p => p.id === id);
       if (!product) {
-        throw new Error('eita');
+        throw new Error('error.');
       }
       if (product.quantity === 1) {
         const productRemoved = products.filter(p => p.id !== id);
 
         setProducts(productRemoved);
       } else {
-        products.map(p =>
-          p.id === id ? { ...product, quantity: p.quantity - 1 } : p,
-        );
+        const productDrec = { ...product, quantity: product.quantity - 1 };
+        products.map(p => (p.id === id ? productDrec : p));
+
+        AsyncStorage.setItem('@market:products', JSON.stringify(productDrec));
       }
     },
     [products],
