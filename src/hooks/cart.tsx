@@ -45,10 +45,14 @@ const CartProvider: React.FC = ({ children }) => {
       const productExists = products.find(prod => prod.id === product.id);
 
       if (productExists) {
-        setProducts(
-          products.map(p =>
-            p.id === product.id ? { ...product, quantity: p.quantity + 1 } : p,
-          ),
+        const productAddMore = products.map(p =>
+          p.id === product.id ? { ...product, quantity: p.quantity + 1 } : p,
+        );
+        setProducts(productAddMore);
+
+        await AsyncStorage.setItem(
+          '@market:products',
+          JSON.stringify(productAddMore),
         );
       } else {
         const newProduct = { ...product, quantity: 1 };
@@ -65,35 +69,33 @@ const CartProvider: React.FC = ({ children }) => {
 
   const increment = useCallback(
     async id => {
-      const product = products.find(id);
-      if (!product) {
-        throw new Error('error.');
-      }
+      const targetProduct = products.map(product =>
+        product.id === id
+          ? { ...product, quantity: product.quantity + 1 }
+          : product,
+      );
+      setProducts(targetProduct);
 
-      const productInc = { ...product, quantity: product.quantity + 1 };
-      products.map(p => (p.id === id ? productInc : p));
-
-      AsyncStorage.setItem('@market:products', JSON.stringify(productInc));
+      await AsyncStorage.setItem(
+        '@market:products',
+        JSON.stringify(targetProduct),
+      );
     },
     [products],
   );
 
   const decrement = useCallback(
     async id => {
-      const product = products.find(p => p.id === id);
-      if (!product) {
-        throw new Error('error.');
-      }
-      if (product.quantity === 1) {
-        const productRemoved = products.filter(p => p.id !== id);
+      const targetProduct = products.map(product =>
+        product.id === id
+          ? { ...product, quantity: product.quantity - 1 }
+          : product,
+      );
 
-        setProducts(productRemoved);
-      } else {
-        const productDrec = { ...product, quantity: product.quantity - 1 };
-        products.map(p => (p.id === id ? productDrec : p));
-
-        AsyncStorage.setItem('@market:products', JSON.stringify(productDrec));
-      }
+      await AsyncStorage.setItem(
+        '@market:products',
+        JSON.stringify(targetProduct),
+      );
     },
     [products],
   );
